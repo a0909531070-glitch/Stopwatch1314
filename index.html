@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0f172a">
+  <link rel="manifest" href="manifest.webmanifest">
+  <title>1314 碼錶</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <h1>1314 碼錶</h1>
+    <p class="hint">手動停止；分圈顯示本圈時間與累積時間</p>
+    <section class="display" aria-live="polite">
+      <div id="time">1314:52:00.00</div>
+      <small id="status">準備開始</small>
+    </section>
+    <section class="controls">
+      <button id="start" class="primary">開始</button>
+      <button id="lap" disabled>分圈</button>
+      <button id="stop" disabled>停止</button>
+      <button id="reset">重設</button>
+    </section>
+    <section class="laps-wrap">
+      <div class="laps-title"><h2>分圈記錄</h2><button id="clearLaps" class="text-btn">清除</button></div>
+      <ol id="laps" class="laps"><li class="empty">尚無分圈記錄</li></ol>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
