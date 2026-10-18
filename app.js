@@ -9,7 +9,7 @@
   const mainButton = $('start-stop');
   const leftButton = $('lap-reset');
   let startTime = DEFAULT_START, finishTime = DEFAULT_FINISH;
-  let mode = 'ready', beganAt = 0, base = startTime, splits = [], page = 'digital', animation = 0, renderedCentis = -1;
+  let mode = 'ready', beganAt = 0, base = startTime, splits = [], page = 'digital', animation = 0, renderedCentis = -1, renderedDigitCount = 0;
   const settings = $('preset-settings');
 
   function format(ms, full = false) {
@@ -69,7 +69,12 @@
   function render() {
     const value = total(), centis = Math.floor(value / 10);
     if (centis !== renderedCentis) {
-      $('time').textContent = format(value, true); $('analog-time').textContent = format(value, true);
+      const displayTime = format(value);
+      $('time').textContent = displayTime; $('analog-time').textContent = displayTime;
+      if (displayTime.length !== renderedDigitCount) {
+        $('digital').style.setProperty('--time-length', String(displayTime.length));
+        renderedDigitCount = displayTime.length;
+      }
       const current = $('current-lap');
       if (current) current.textContent = format(value - previousSplit());
       $('second-hand').style.transform = `rotate(${(value % 60000) / 60000 * 360}deg)`;
