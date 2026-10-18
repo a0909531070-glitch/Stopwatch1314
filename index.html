@@ -8,10 +8,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="碼錶">
   <meta name="description" content="1314 預設時間展示碼錶，手動停止及分圈記錄。">
-  <link rel="manifest" href="manifest.webmanifest?v=2">
+  <link rel="manifest" href="manifest.webmanifest?v=3">
   <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=apple-2">
+  <link rel="stylesheet" href="style.css?v=apple-3">
   <title>碼錶</title>
 </head>
 <body>
@@ -41,12 +41,34 @@
     <section class="lap-area" aria-label="分圈記錄"><ol id="laps" aria-label="分圈記錄"></ol></section>
     <span id="status" class="sr-only" role="status">準備開始</span>
   </main>
-  <div class="bottom-tabs" aria-hidden="true">
-    <div class="bottom-item"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="13"/><ellipse cx="16" cy="16" rx="6" ry="13"/><path d="M3 16h26M6 8c7 4 13 4 20 0M6 24c7-4 13-4 20 0"/></svg><span>世界時鐘</span></div>
-    <div class="bottom-item"><svg viewBox="0 0 32 32"><circle cx="16" cy="17" r="11"/><path d="M16 9v8h-6M6 4 2 8m24-4 4 4M8 27l-3 3m19-3 3 3"/><path d="M4 5c1-3 5-4 7-2M21 3c2-2 6-1 7 2"/></svg><span>鬧鐘</span></div>
-    <div class="bottom-item active"><svg viewBox="0 0 32 32"><circle cx="16" cy="18" r="12" fill="currentColor" stroke="none"/><path d="M16 3v4m-3-4h6m6 4 2 2"/><path d="M16 11v8" stroke="#000" stroke-width="2.3"/><circle cx="16" cy="19" r="1.8" fill="#000" stroke="none"/></svg><span>碼錶</span></div>
-    <div class="bottom-item"><svg viewBox="0 0 32 32"><path d="M16 3a13 13 0 1 1-9.5 4.2M16 3v7l-5-3M16 12v7l5 3"/></svg><span>計時器</span></div>
-  </div>
-  <script src="app.js?v=apple-2" defer></script>
+  <nav class="bottom-tabs" aria-label="時鐘工具">
+    <div class="bottom-item" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="13"/><ellipse cx="16" cy="16" rx="6" ry="13"/><path d="M3 16h26M6 8c7 4 13 4 20 0M6 24c7-4 13-4 20 0"/></svg><span>世界時鐘</span></div>
+    <div class="bottom-item" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="16" cy="17" r="11"/><path d="M16 9v8h-6M6 4 2 8m24-4 4 4M8 27l-3 3m19-3 3 3"/><path d="M4 5c1-3 5-4 7-2M21 3c2-2 6-1 7 2"/></svg><span>鬧鐘</span></div>
+    <button id="stopwatch-tab" class="bottom-item active" type="button" aria-current="page"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="18" r="12" fill="currentColor" stroke="none"/><path d="M16 3v4m-3-4h6m6 4 2 2"/><path d="M16 11v8" stroke="#000" stroke-width="2.3"/><circle cx="16" cy="19" r="1.8" fill="#000" stroke="none"/></svg><span>碼錶</span></button>
+    <button id="timer-tab" class="bottom-item" type="button" aria-label="計時器：設定起始與停止時間" aria-haspopup="dialog"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3a13 13 0 1 1-9.5 4.2M16 3v7l-5-3M16 12v7l5 3"/></svg><span>計時器</span></button>
+  </nav>
+  <dialog id="preset-settings" aria-labelledby="settings-title" aria-describedby="settings-note">
+    <form id="preset-form" novalidate>
+      <header class="settings-header"><h1 id="settings-title">計時器設定</h1><button id="settings-cancel" class="close-settings" type="button" aria-label="關閉設定">×</button></header>
+      <p id="settings-note">設定起始時間與停止後顯示的時間，按「停止」才結束。此設定用於預設時間展示。</p>
+      <fieldset><legend>起始時間</legend><div class="time-fields">
+        <label>小時<input id="start-hours" type="number" inputmode="numeric" min="0" max="999999" step="1" required></label>
+        <label>分鐘<input id="start-minutes" type="number" inputmode="numeric" min="0" max="59" step="1" required></label>
+        <label>秒<input id="start-seconds" type="number" inputmode="numeric" min="0" max="59" step="1" required></label>
+        <label>百分秒<input id="start-centis" type="number" inputmode="numeric" min="0" max="99" step="1" required></label>
+      </div><output id="start-preview" class="time-preview">1314:52:00.00</output></fieldset>
+      <fieldset><legend>停止後顯示時間</legend><div class="time-fields">
+        <label>小時<input id="finish-hours" type="number" inputmode="numeric" min="0" max="999999" step="1" required></label>
+        <label>分鐘<input id="finish-minutes" type="number" inputmode="numeric" min="0" max="59" step="1" required></label>
+        <label>秒<input id="finish-seconds" type="number" inputmode="numeric" min="0" max="59" step="1" required></label>
+        <label>百分秒<input id="finish-centis" type="number" inputmode="numeric" min="0" max="99" step="1" required></label>
+      </div><output id="finish-preview" class="time-preview">1314:52:12.31</output></fieldset>
+      <p id="settings-error" role="alert" hidden></p>
+      <p class="reset-note">儲存後會重置本次計時與分圈記錄。</p>
+      <button id="settings-save" class="save-settings" type="submit">儲存並重置</button>
+      <button id="settings-defaults" class="default-settings" type="button">還原預設值</button>
+    </form>
+  </dialog>
+  <script src="app.js?v=apple-3" defer></script>
 </body>
 </html>

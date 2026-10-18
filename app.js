@@ -1,14 +1,16 @@
 (() => {
   'use strict';
   // Requested preset-time demonstration: these are displayed, not measured, times.
-  const START = 1314 * 3600000 + 52 * 60000;
-  const FINISH = START + 12310;
-  const LAST_RUNNING = FINISH - 10;
+  const DEFAULT_START = 1314 * 3600000 + 52 * 60000;
+  const DEFAULT_FINISH = DEFAULT_START + 12310;
+  const MAX_TIME = 999999 * 3600000 + 3599990;
   const STORE = 'stopwatch1314-apple-demo-v2';
   const $ = id => document.getElementById(id);
   const mainButton = $('start-stop');
   const leftButton = $('lap-reset');
-  let mode = 'ready', beganAt = 0, base = START, splits = [], page = 'digital', animation = 0, renderedCentis = -1;
+  let startTime = DEFAULT_START, finishTime = DEFAULT_FINISH;
+  let mode = 'ready', beganAt = 0, base = startTime, splits = [], page = 'digital', animation = 0, renderedCentis = -1;
+  const settings = $('preset-settings');
 
   function format(ms, full = false) {
     const centis = Math.floor(Math.max(0, ms) / 10);
@@ -20,20 +22,21 @@
   }
   function total() {
     if (mode !== 'running') return base;
-    return Math.floor(Math.min(LAST_RUNNING, base + Math.max(0, Date.now() - beganAt)) / 10) * 10;
+    return Math.floor(Math.min(finishTime - 10, base + Math.max(0, Date.now() - beganAt)) / 10) * 10;
   }
   function previousSplit() { return splits.length ? splits[splits.length - 1] : 0; }
   function save() {
-    try { localStorage.setItem(STORE, JSON.stringify({mode, beganAt, base, splits, page})); } catch (_) {}
+    try { localStorage.setItem(STORE, JSON.stringify({mode, beganAt, base, splits, page, startTime, finishTime})); } catch (_) {}
   }
   function restore() {
     try {
       const s = JSON.parse(localStorage.getItem(STORE));
+      if (s && validRange(s.startTime, s.finishTime)) { startTime = s.startTime; finishTime = s.finishTime; base = startTime; }
       if (!s || !['ready', 'running', 'stopped'].includes(s.mode)) return;
-      if (!Array.isArray(s.splits) || !Number.isFinite(s.base) || s.base < START || s.base > FINISH) return;
-      if (s.splits.length > 1000 || s.splits.some((v, i) => !Number.isInteger(v) || v % 10 !== 0 || v <= START || v > LAST_RUNNING || (i && v <= s.splits[i - 1]))) return;
-      if (s.mode === 'running' && (!Number.isFinite(s.beganAt) || s.beganAt <= 0 || s.base > LAST_RUNNING)) return;
-      if ((s.mode === 'ready' && (s.base !== START || s.splits.length)) || (s.mode === 'stopped' && s.base !== FINISH)) return;
+      if (!Array.isArray(s.splits) || !Number.isInteger(s.base) || s.base % 10 !== 0 || s.base < startTime || s.base > finishTime) return;
+      if (s.splits.length > 1000 || s.splits.some((v, i) => !Number.isInteger(v) || v % 10 !== 0 || v <= startTime || v > finishTime - 10 || (i && v <= s.splits[i - 1]))) return;
+      if (s.mode === 'running' && (!Number.isFinite(s.beganAt) || s.beganAt <= 0 || s.base > finishTime - 10)) return;
+      if ((s.mode === 'ready' && (s.base !== startTime || s.splits.length)) || (s.mode === 'stopped' && s.base !== finishTime)) return;
       mode = s.mode; beganAt = s.beganAt; base = s.base; splits = s.splits;
       page = s.page === 'analog' ? 'analog' : 'digital';
     } catch (_) {}
@@ -78,25 +81,67 @@
   function start() {
     if (mode === 'running') return;
     // A new start after the fixed finish begins a fresh demonstration.
-    if (mode === 'stopped') { base = START; splits = []; }
+    if (mode === 'stopped') { base = startTime; splits = []; }
     mode = 'running'; beganAt = Date.now(); renderedCentis = -1;
     rebuildLaps(total()); renderControls(); save(); render();
   }
   function stop() {
     if (mode !== 'running') return;
-    cancelAnimationFrame(animation); mode = 'stopped'; base = FINISH; renderedCentis = -1;
+    cancelAnimationFrame(animation); mode = 'stopped'; base = finishTime; renderedCentis = -1;
     rebuildLaps(base); renderControls(); save(); render();
   }
   function lap() {
     if (mode !== 'running' || splits.length >= 1000) return;
     const value = total();
-    if (value <= (splits.length ? previousSplit() : START)) return;
+    if (value <= (splits.length ? previousSplit() : startTime)) return;
     splits.push(value); rebuildLaps(value); save();
   }
   function reset() {
-    cancelAnimationFrame(animation); mode = 'ready'; beganAt = 0; base = START; splits = []; renderedCentis = -1;
+    cancelAnimationFrame(animation); mode = 'ready'; beganAt = 0; base = startTime; splits = []; renderedCentis = -1;
     rebuildLaps(base); renderControls(); save(); render();
   }
+  function validRange(start, finish) {
+    return [start, finish].every(value => Number.isSafeInteger(value) && value >= 0 && value <= MAX_TIME && value % 10 === 0) && finish > start;
+  }
+  function writeFields(prefix, ms) {
+    const values = [Math.floor(ms / 3600000), Math.floor(ms / 60000) % 60, Math.floor(ms / 1000) % 60, Math.floor(ms / 10) % 100];
+    ['hours', 'minutes', 'seconds', 'centis'].forEach((unit, i) => { $(prefix + '-' + unit).value = String(values[i]).padStart(i ? 2 : 1, '0'); });
+  }
+  function readFields(prefix) {
+    const units = ['hours', 'minutes', 'seconds', 'centis'], limits = [999999, 59, 59, 99], values = [];
+    for (let i = 0; i < units.length; i++) {
+      const input = $(prefix + '-' + units[i]);
+      if (!/^\d+$/.test(input.value) || Number(input.value) > limits[i]) return {input, error: `${prefix === 'start' ? '起始' : '停止'}時間的${['小時', '分鐘', '秒', '百分秒'][i]}須為 0–${limits[i]} 的整數。`};
+      values.push(Number(input.value));
+    }
+    return {value: values[0] * 3600000 + values[1] * 60000 + values[2] * 1000 + values[3] * 10};
+  }
+  function previewSettings() {
+    for (const prefix of ['start', 'finish']) {
+      const parsed = readFields(prefix);
+      $(prefix + '-preview').textContent = parsed.error ? '請輸入有效時間' : format(parsed.value, true);
+    }
+    $('settings-error').hidden = true;
+  }
+  function openSettings() {
+    writeFields('start', startTime); writeFields('finish', finishTime); previewSettings();
+    $('stopwatch-tab').classList.toggle('active', false); $('timer-tab').classList.toggle('active', true);
+    settings.showModal();
+  }
+  function applySettings(event) {
+    event.preventDefault();
+    const start = readFields('start'), finish = readFields('finish');
+    const invalid = start.error ? start : finish.error ? finish : !validRange(start.value, finish.value) ? {error: '停止時間必須晚於起始時間，至少相差 0.01 秒。', input: $('finish-hours')} : null;
+    if (invalid) { $('settings-error').textContent = invalid.error; $('settings-error').hidden = false; invalid.input.focus(); return; }
+    startTime = start.value; finishTime = finish.value; reset(); settings.close();
+  }
+  $('timer-tab').addEventListener('click', openSettings);
+  $('preset-form').addEventListener('submit', applySettings);
+  $('preset-form').addEventListener('input', previewSettings);
+  $('settings-cancel').addEventListener('click', () => settings.close());
+  $('stopwatch-tab').addEventListener('click', () => { if (settings.open) settings.close(); });
+  settings.addEventListener('close', () => { $('stopwatch-tab').classList.toggle('active', true); $('timer-tab').classList.toggle('active', false); });
+  $('settings-defaults').addEventListener('click', () => { writeFields('start', DEFAULT_START); writeFields('finish', DEFAULT_FINISH); previewSettings(); });
   mainButton.addEventListener('click', () => mode === 'running' ? stop() : start());
   leftButton.addEventListener('click', () => mode === 'running' ? lap() : reset());
   for (const name of ['digital', 'analog']) $(name + '-dot').addEventListener('click', () => {page = name; renderControls(); save();});
