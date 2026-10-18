@@ -1,5 +1,5 @@
-const CACHE = 'stopwatch1314-apple-v4';
-const FILES = ['./', 'index.html', 'style.css?v=apple-4', 'app.js?v=apple-4', 'manifest.webmanifest?v=4', 'icon.svg', 'icon-192.png', 'icon-512.png'];
+const CACHE = 'stopwatch1314-apple-v5';
+const FILES = ['./', 'index.html', 'style.css?v=apple-5', 'app.js?v=apple-5', 'manifest.webmanifest?v=5', 'icon.svg', 'icon-192.png', 'icon-512.png', 'nav-world.svg', 'nav-alarm.svg', 'nav-stopwatch.svg', 'nav-timer.svg'];
 self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(FILES)).then(() => self.skipWaiting())));
 self.addEventListener('activate', event => event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('stopwatch1314-') && key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim())));
 self.addEventListener('fetch', event => {
