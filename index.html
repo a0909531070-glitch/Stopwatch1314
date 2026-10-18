@@ -3,30 +3,50 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#0f172a">
-  <link rel="manifest" href="manifest.webmanifest">
-  <title>1314 碼錶</title>
-  <link rel="stylesheet" href="style.css">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="碼錶">
+  <meta name="description" content="1314 預設時間展示碼錶，手動停止及分圈記錄。">
+  <link rel="manifest" href="manifest.webmanifest?v=2">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css?v=apple-2">
+  <title>碼錶</title>
 </head>
 <body>
-  <main class="app">
-    <h1>1314 碼錶</h1>
-    <p class="hint">手動停止；分圈顯示本圈時間與累積時間</p>
-    <section class="display" aria-live="polite">
-      <div id="time">1314:52:00.00</div>
-      <small id="status">準備開始</small>
+  <main class="stopwatch" aria-label="1314 碼錶">
+    <section class="face" aria-label="碼錶顯示">
+      <div id="digital" class="digital"><span id="time">1314:52:00.00</span></div>
+      <div id="analog" class="analog" hidden>
+        <svg viewBox="0 0 320 320" aria-hidden="true">
+          <defs><line id="tick" x1="160" y1="10" x2="160" y2="20"/><line id="minor-tick" x1="160" y1="10" x2="160" y2="15"/></defs>
+          <g id="dial-ticks" stroke="#8e8e93" stroke-width="1"/>
+          <g fill="#f5f5f7" text-anchor="middle" font-size="17" font-family="system-ui,sans-serif"><text x="160" y="47">60</text><text x="273" y="165">15</text><text x="160" y="285">30</text><text x="47" y="165">45</text></g>
+          <line id="lap-hand" x1="160" y1="180" x2="160" y2="38" stroke="#0a84ff" stroke-width="2"/>
+          <line id="second-hand" x1="160" y1="185" x2="160" y2="28" stroke="#ff9f0a" stroke-width="2"/>
+          <circle cx="160" cy="160" r="5" fill="#ff9f0a"/>
+        </svg>
+        <span id="analog-time" class="analog-time">1314:52:00.00</span>
+      </div>
     </section>
-    <section class="controls">
-      <button id="start" class="primary">開始</button>
-      <button id="lap" disabled>分圈</button>
-      <button id="stop" disabled>停止</button>
-      <button id="reset">重設</button>
-    </section>
-    <section class="laps-wrap">
-      <div class="laps-title"><h2>分圈記錄</h2><button id="clearLaps" class="text-btn">清除</button></div>
-      <ol id="laps" class="laps"><li class="empty">尚無分圈記錄</li></ol>
-    </section>
+    <div class="controls">
+      <button id="lap-reset" class="round secondary" disabled>分圈</button>
+      <div class="pages" role="group" aria-label="顯示方式">
+        <button class="page-dot selected" id="digital-dot" aria-label="數字碼錶" aria-pressed="true"></button>
+        <button class="page-dot" id="analog-dot" aria-label="指針碼錶" aria-pressed="false"></button>
+      </div>
+      <button id="start-stop" class="round start">開始</button>
+    </div>
+    <section class="lap-area" aria-label="分圈記錄"><ol id="laps" aria-label="分圈記錄"></ol></section>
+    <span id="status" class="sr-only" role="status">準備開始</span>
   </main>
-  <script src="app.js"></script>
+  <div class="bottom-tabs" aria-hidden="true">
+    <div class="bottom-item"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="13"/><ellipse cx="16" cy="16" rx="6" ry="13"/><path d="M3 16h26M6 8c7 4 13 4 20 0M6 24c7-4 13-4 20 0"/></svg><span>世界時鐘</span></div>
+    <div class="bottom-item"><svg viewBox="0 0 32 32"><circle cx="16" cy="17" r="11"/><path d="M16 9v8h-6M6 4 2 8m24-4 4 4M8 27l-3 3m19-3 3 3"/><path d="M4 5c1-3 5-4 7-2M21 3c2-2 6-1 7 2"/></svg><span>鬧鐘</span></div>
+    <div class="bottom-item active"><svg viewBox="0 0 32 32"><circle cx="16" cy="18" r="12" fill="currentColor" stroke="none"/><path d="M16 3v4m-3-4h6m6 4 2 2"/><path d="M16 11v8" stroke="#000" stroke-width="2.3"/><circle cx="16" cy="19" r="1.8" fill="#000" stroke="none"/></svg><span>碼錶</span></div>
+    <div class="bottom-item"><svg viewBox="0 0 32 32"><path d="M16 3a13 13 0 1 1-9.5 4.2M16 3v7l-5-3M16 12v7l5 3"/></svg><span>計時器</span></div>
+  </div>
+  <script src="app.js?v=apple-2" defer></script>
 </body>
 </html>
